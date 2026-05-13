@@ -1,0 +1,114 @@
+blueprint:
+  name: Weekday & Weekend Light Schedule
+  description: >
+    Turn on a light at different times depending on whether it's a weekday or weekend.
+    Configure separate days and trigger times for each schedule.
+  domain: automation
+  input:
+    light_target:
+      name: Light
+      description: The light (or light group) to turn on.
+      selector:
+        target:
+          entity:
+            domain: light
+
+    weekday_days:
+      name: Weekday Days
+      description: Select which days count as "weekdays".
+      default:
+        - mon
+        - tue
+        - wed
+        - thu
+        - fri
+      selector:
+        select:
+          multiple: true
+          options:
+            - label: Monday
+              value: mon
+            - label: Tuesday
+              value: tue
+            - label: Wednesday
+              value: wed
+            - label: Thursday
+              value: thu
+            - label: Friday
+              value: fri
+            - label: Saturday
+              value: sat
+            - label: Sunday
+              value: sun
+
+    weekday_time:
+      name: Weekday Time
+      description: Time to turn on the light on weekdays.
+      default: "05:30:00"
+      selector:
+        time:
+
+    weekend_days:
+      name: Weekend Days
+      description: Select which days count as "weekend".
+      default:
+        - sat
+        - sun
+      selector:
+        select:
+          multiple: true
+          options:
+            - label: Monday
+              value: mon
+            - label: Tuesday
+              value: tue
+            - label: Wednesday
+              value: wed
+            - label: Thursday
+              value: thu
+            - label: Friday
+              value: fri
+            - label: Saturday
+              value: sat
+            - label: Sunday
+              value: sun
+
+    weekend_time:
+      name: Weekend Time
+      description: Time to turn on the light on weekends.
+      default: "08:00:00"
+      selector:
+        time:
+
+trigger:
+  - platform: time
+    at: !input weekday_time
+    id: weekday_trigger
+
+  - platform: time
+    at: !input weekend_time
+    id: weekend_trigger
+
+condition: []
+
+action:
+  - choose:
+      - conditions:
+          - condition: trigger
+            id: weekday_trigger
+          - condition: time
+            weekday: !input weekday_days
+        sequence:
+          - action: light.turn_on
+            target: !input light_target
+
+      - conditions:
+          - condition: trigger
+            id: weekend_trigger
+          - condition: time
+            weekday: !input weekend_days
+        sequence:
+          - action: light.turn_on
+            target: !input light_target
+
+mode: single
